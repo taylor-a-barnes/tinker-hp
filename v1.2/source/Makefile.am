@@ -74,7 +74,7 @@ LDADD  = libtinkercalc.a libtinkermod.a libtinkerclv.a
 # These libraries are external and defined by configure
 #
 
-LDADD += $(LIBCOLVARS_LIB) $(LIBTCL_LIB) $(LIBPLUMED_LIB) $(LIB2DECOMP_LIB) $(FFTW_LIBS) $(BLAS) @NVMPICXX@
+LDADD += $(LIBCOLVARS_LIB) $(LIBTCL_LIB) $(LIBPLUMED_LIB) $(LIB2DECOMP_LIB) $(FFTW_LIBS) $(LIBMDI_LIB) $(BLAS) @NVMPICXX@
 
 #
 # Declare the Tinker libraries needed by the programs
@@ -569,7 +569,7 @@ libtinkercalc_a_SOURCES += version.f
 # So, this include flag is used only for *.f90 sources
 # For *.f sources, that would have been AM_FFLAGS
 #
-AM_FCFLAGS=$(LIB2DECOMP_INC) $(PLUMEDFLAG) $(LIBPLUMED_INC) $(LIBCOLVARS_INC) $(TCLFLAG) $(LIBTCL_INC)
+AM_FCFLAGS=$(LIB2DECOMP_INC) $(PLUMEDFLAG) $(LIBPLUMED_INC) $(LIBCOLVARS_INC) $(TCLFLAG) $(LIBTCL_INC) $(LIBMDI_INC)
  
 #
 # local cleaning of *.mod files
@@ -600,6 +600,11 @@ clean-local :
 # So, it's either tcl.mk or notcl.mk
 #
 @INCLUDE_TCL_MK@
+#
+# include mdi generation (Key substituted by configure)
+# So, it's either mdi.mk or nomdi.mk
+#
+@INCLUDE_MDI_MK@
 #
 # End of Makefile.am
 #

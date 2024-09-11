@@ -295,6 +295,61 @@ AC_ARG_ENABLE([plumed],
               [:]
              )
 
+#
+# Enable MolSSI Driver Interface support if selected by user.
+#
+
+AC_ARG_ENABLE([mdi],
+              [AS_HELP_STRING([--enable-mdi], [Enable MolSSI Driver Interface support @<:@default is no@:>@])],
+              [MDI="MDI"],
+              [MDI=""]
+             )
+
+AC_MSG_CHECKING([location of MDI library])
+AC_ARG_WITH([mdilib],
+            [AS_HELP_STRING([--with-mdilib=<MDI LIB PATH>],
+                            [Specify the MDI library path (default is /usr/local/lib/mdi)])],
+            [MDI_LIB_PATH=$with_mdilib],
+            [MDI_LIB_PATH="/usr/local/lib/mdi"]
+            )
+AC_MSG_RESULT([${GRN}$MDI_LIB_PATH${CLR}])
+
+MDI_INC="${MDI_LIB_PATH}/../../include/mdi"
+MDI_LIB="${MDI_LIB_PATH}"
+AC_SUBST([MDI_INC])
+AC_SUBST([MDI_LIB])
+
+       AS_IF([test x$MDI = xMDI],
+             [ LIBMDI_PATH="${MDI_LIB_PATH}/../../"
+               LIBMDI_LIBPATH="$MDI_LIB"
+               LIBMDI_LIB="-L $LIBMDI_LIBPATH -lmdi"
+               LIBMDI_INC="-I $MDI_INC"
+               MDIFLAG="$LIBMDI_LIB $LIBMDI_INC"
+               case "x$REALFC" in
+                  xifort    ) COMP="Intel"; CXXCOMP="mpiicpc";;
+                  xpgfortran) COMP="Portland"; CXXCOMP="mpic++";;
+                  xgfortran ) COMP="Gnu"; CXXCOMP="mpic++";;
+               esac
+               MDIEXT="_mdi"
+               MDIINCLUDE=""
+               MDIDEP="$LIBMDI_LIBPATH/libmdi.so"
+               AC_MSG_NOTICE(["$YEL Configuring MDI in $LIBMDI_PATH$GRN${CLR}"])
+               #
+               # States that this Makefiles.conf should be generated
+               #
+               #AC_CONFIG_FILES(mdi/Makefile.conf, [(cd mdi ; ./configure MPICXX=$CXXCOMP --prefix=$PREFIX  --enable-mpi)],[PREFIX=$(pwd)/plumed/$COMP/; CXXCOMP=$CXXCOMP ] )
+             ],
+             [ MDIFLAG=""
+               LIBMDI_PATH=""
+               LIBMDI_LIB=""
+               LIBMDI_INC=""
+               MDIEXT=""
+               MDIINCLUDE="nomdi.mk"
+               MDIDEP=""
+	     ]
+            )
+
+AC_SUBST([MDI])
 
 #
 # Enable colvars interface. COLVARS will contain the value chosen by the user
@@ -657,7 +712,7 @@ AM_CPPFLAGS="$LIBCOLVARS_CPPFLAGS"
 #
 # Flags for .f sources are the same as those for .f90 sources
 # Fortran compiler is the wrapper
-FCFLAGS="$PREPROFLAG $COLVARSFLAG $PLUMEDFLAG $TCLFLAG $FCFLAGS $FORT_FLAGS"
+FCFLAGS="$PREPROFLAG $COLVARSFLAG $PLUMEDFLAG $MDIFLAG $TCLFLAG $FCFLAGS $FORT_FLAGS"
 FFLAGS=$FCFLAGS
 FC=$MPIFC
 
@@ -707,6 +762,8 @@ COLLI_MSG="** COLVARS  Library     : ${GRN}$LIBCOLVARS_LIB"
 COLIN_MSG="** COLVARS  Includes    : ${GRN}$LIBCOLVARS_INC"
 TCLLI_MSG="** TCL  Library         : ${GRN}$LIBTCL_LIB"
 TCLIN_MSG="** TCL  Includes        : ${GRN}$LIBTCL_INC"
+MDILI_MSG="** MDI  Library         : ${GRN}$LIBMDI_LIB"
+MDIIN_MSG="** MDI  Includes        : ${GRN}$LIBMDI_INC"
 FFTTY_MSG="** FFTW3 Interface      : ${GRN}$FFTW_TYPE of the $FFTWTYPE library"
 FFTPA_MSG="** FFTW3 Path           : ${GRN}$FFTW_LIB_PATH"
 FFTIN_MSG="** FFTW3 Includes       : ${GRN}$FFTW_INCLUDES"
@@ -728,6 +785,8 @@ COLLI_MSG="$CLR$COLLI_MSG${PADD:0:$((120 - ${#COLLI_MSG}))}$CLR"
 COLIN_MSG="$CLR$COLIN_MSG${PADD:0:$((120 - ${#COLIN_MSG}))}$CLR"
 TCLLI_MSG="$CLR$TCLLI_MSG${PADD:0:$((120 - ${#TCLLI_MSG}))}$CLR"
 TCLIN_MSG="$CLR$TCLIN_MSG${PADD:0:$((120 - ${#TCLIN_MSG}))}$CLR"
+MDILI_MSG="$CLR$MDILI_MSG${PADD:0:$((120 - ${#MDILI_MSG}))}$CLR"
+MDIIN_MSG="$CLR$MDIIN_MSG${PADD:0:$((120 - ${#MDIIN_MSG}))}$CLR"
 FFTTY_MSG="$CLR$FFTTY_MSG${PADD:0:$((120 - ${#FFTTY_MSG}))}$CLR"
 FFTPA_MSG="$CLR$FFTPA_MSG${PADD:0:$((120 - ${#FFTPA_MSG}))}$CLR"
 FFTIN_MSG="$CLR$FFTIN_MSG${PADD:0:$((120 - ${#FFTIN_MSG}))}$CLR"
@@ -753,6 +812,8 @@ AC_SUBST([LIBCOLVARS_INC])
 AC_SUBST([LIBPLUMED_LIB])
 AC_SUBST([LIBPLUMED_LIBPATH])
 AC_SUBST([PLUMEDDEP],[$PLUMEDDEP])
+AC_SUBST([LIBMDI_INC])
+AC_SUBST([LIBMDI_LIB])
 AC_SUBST([TCL])
 AC_SUBST([LIBTCL_INC])
 AC_SUBST([LIBTCL_LIB])
@@ -770,6 +831,7 @@ AC_SUBST([PYTHON])
 AC_SUBST([PREFIX])
 AC_SUBST([INCLUDE_DEPEND_MK],["include depend.mk"])
 AC_SUBST([INCLUDE_PLUMED_MK],["include "$PLUMEDINCLUDE])
+AC_SUBST([INCLUDE_MDI_MK],["include "$MDIINCLUDE])
 AC_SUBST([INCLUDE_TCL_MK],["include "$TCLINCLUDE])
 AC_SUBST([INCLUDE_COLVARS_MK],["include "$COLVARSINCLUDE])
 AC_SUBST([LIBTINKERCLV],[$TINKERCOLVARS])
@@ -818,6 +880,8 @@ AC_MSG_NOTICE([$COLLI_MSG])
 AC_MSG_NOTICE([$COLIN_MSG])
 AC_MSG_NOTICE([$TCLLI_MSG])
 AC_MSG_NOTICE([$TCLIN_MSG])
+AC_MSG_NOTICE([$MDILI_MSG])
+AC_MSG_NOTICE([$MDIIN_MSG])
 AC_MSG_NOTICE([$FFTTY_MSG])
 AC_MSG_NOTICE([$FFTPA_MSG])
 AC_MSG_NOTICE([$FFTIN_MSG])

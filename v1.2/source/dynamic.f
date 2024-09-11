@@ -36,6 +36,7 @@ c
       use mdstuf
       use moldyn
       use mpi
+      use mdi
       use mutant
       use qtb, only: qtb_thermostat,adaptive_qtb
       use potent
@@ -61,6 +62,7 @@ c
 c
 c     set up the structure and molecular mechanics calculation
 c
+      WRITE(6,*)"MDI_INT: ",MDI_INT
       call initial
       call getxyz
       call initmpi
