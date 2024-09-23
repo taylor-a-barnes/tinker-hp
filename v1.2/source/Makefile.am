@@ -242,6 +242,7 @@ libtinkermod_a_SOURCES += MOD_kvdws.f
 libtinkermod_a_SOURCES += MOD_langevin.f
 libtinkermod_a_SOURCES += MOD_linmin.f
 libtinkermod_a_SOURCES += MOD_math.f
+libtinkermod_a_SOURCES += MOD_mdiengine.f
 libtinkermod_a_SOURCES += MOD_mdstuf.f
 libtinkermod_a_SOURCES += MOD_mdstuf1.f
 libtinkermod_a_SOURCES += MOD_merck.f

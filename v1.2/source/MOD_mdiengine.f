@@ -36,7 +36,7 @@ c
 c
 c     #################################################################
 c     ##                                                             ##
-c     ##  subroutine init_mdi  --  Initialize MDI Library            ##
+c     ##  subroutine init_mdi  --  Initialize the MDI Library            ##
 c     ##                                                             ##
 c     #################################################################
 c
@@ -59,14 +59,14 @@ ccccccccccccc      use efield
       generic_command => execute_command
       class_obj = c_null_ptr
 c
-c     check for the -mdi command line argument
+c     check for the --mdi command line argument
 c
       use_mdi = .false.
       found_mdi = .false.
       do i = 1, narg-1
          string = arg(i)
          call upcase (string)
-         if (string(1:4) .eq. '-MDI') then
+         if (string(1:5) .eq. '--MDI') then
             mdi_options = arg(i+1)
             found_mdi = .true.
          end if
@@ -106,10 +106,10 @@ c
         call MDI_Register_command("@DEFAULT", "<COORDS", ierr)
         call MDI_Register_command("@DEFAULT", ">COORDS", ierr)
         call MDI_Register_command("@DEFAULT", "<DIMENSIONS", ierr)
-        call MDI_Register_command("@DEFAULT", "<ELEMENTS", ierr)
+cccccccccc        call MDI_Register_command("@DEFAULT", "<ELEMENTS", ierr)
         call MDI_Register_command("@DEFAULT", ">EWALD", ierr)
-        call MDI_Register_command("@DEFAULT", "<MASSES", ierr)
-        call MDI_Register_command("@DEFAULT", ">MASSES", ierr)
+cccccccccc        call MDI_Register_command("@DEFAULT", "<MASSES", ierr)
+cccccccccc        call MDI_Register_command("@DEFAULT", ">MASSES", ierr)
         call MDI_Register_command("@DEFAULT", "<NATOMS", ierr)
         call MDI_Register_command("@DEFAULT", "<POLARITIES", ierr)
         call MDI_Register_command("@DEFAULT", ">POLARITIES", ierr)
@@ -791,13 +791,13 @@ c     ##  subroutine send_elements  --  Respond to "<ELEMENTS"       ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine send_elements(comm)
+      subroutine send_elements(comm)
 ccccccccccccc      use atoms , only  : n
 ccccccccccccc      use atomid , only  : atomic
 ccccccccccccc      use iounit , only : iout
 ccccccccccccc 1    use mdi , only    : MDI_INT, MDI_Send
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr, iatom
 ccccccccccccc      integer, allocatable          :: mdielem(:)
 ccccccccccccc
@@ -817,8 +817,8 @@ ccccccccccccc         write(iout,*)'SEND_ELEMENTS -- MDI_Send failed'
 ccccccccccccc         call fatal
 ccccccccccccc      end if
 ccccccccccccc      deallocate( mdielem )
-ccccccccccccc      return
-ccccccccccccc      end subroutine send_elements
+      return
+      end subroutine send_elements
 c
 c     #################################################################
 c     ##                                                             ##
@@ -893,12 +893,12 @@ c     ##  subroutine recv_ewald  --  Respond to ">EWALD"             ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine recv_ewald(comm)
+      subroutine recv_ewald(comm)
 ccccccccccccc      use iounit , only : iout
 ccccccccccccc 1    use mdi , only    : MDI_INT, MDI_Recv
 ccccccccccccc      use limits , only : use_ewald
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr
 ccccccccccccc      integer                      :: ewald_flag
 cccccccccccccc
@@ -931,8 +931,8 @@ cccccccccccccc
 cccccccccccccc     redo cutoff initialization
 cccccccccccccc
 ccccccccccccc      call cutoffs
-ccccccccccccc      return
-ccccccccccccc      end subroutine recv_ewald
+      return
+      end subroutine recv_ewald
 c
 c     #################################################################
 c     ##                                                             ##
@@ -1176,13 +1176,13 @@ c     ##  subroutine send_masses  --  Respond to "<MASSES"           ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine send_masses(comm)
+      subroutine send_masses(comm)
 ccccccccccccc      use atoms , only  : n
 ccccccccccccc      use atomid , only  : mass
 ccccccccccccc      use iounit , only : iout
 ccccccccccccc 1    use mdi , only    : MDI_DOUBLE, MDI_Send
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr, iatom
 ccccccccccccc      real*8, allocatable          :: mdimass(:)
 ccccccccccccc
@@ -1202,8 +1202,8 @@ ccccccccccccc         write(iout,*)'SEND_MASSES -- MDI_Send failed'
 ccccccccccccc         call fatal
 ccccccccccccc      end if
 ccccccccccccc      deallocate( mdimass )
-ccccccccccccc      return
-ccccccccccccc      end subroutine send_masses
+      return
+      end subroutine send_masses
 c
 c     #################################################################
 c     ##                                                             ##
@@ -1211,13 +1211,13 @@ c     ##  subroutine recv_masses  --  Respond to ">MASSES"           ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine recv_masses(comm)
+      subroutine recv_masses(comm)
 ccccccccccccc      use atoms , only  : n
 ccccccccccccc      use atomid , only  : mass
 ccccccccccccc      use iounit , only : iout
 ccccccccccccc 1    use mdi , only    : MDI_DOUBLE, MDI_Recv
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr, iatom
 ccccccccccccc      real*8, allocatable          :: mdimass(:)
 ccccccccccccc
@@ -1237,8 +1237,8 @@ ccccccccccccc      do iatom=1, n
 ccccccccccccc         mass(iatom) = mdimass(iatom)
 ccccccccccccc      end do
 ccccccccccccc      deallocate( mdimass )
-ccccccccccccc      return
-ccccccccccccc      end subroutine recv_masses
+      return
+      end subroutine recv_masses
 c
 c     #################################################################
 c     ##                                                             ##
@@ -1295,13 +1295,13 @@ c     ##  subroutine recv_nprobes --  Respond to ">NPROBES"          ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine recv_nprobes(comm)
+      subroutine recv_nprobes(comm)
 ccccccccccccc         use iounit , only : iout
 ccccccccccccc1        use mdi , only    : MDI_DOUBLE, MDI_INT, MDI_Recv
 ccccccccccccc         use efield , only : nprobes, probes, probe_mask
 ccccccccccccc         use mpole , only  : npole
 ccccccccccccc         implicit none
-ccccccccccccc         integer, intent(in)          :: comm
+         integer, intent(in)          :: comm
 ccccccccccccc         integer                      :: ierr, iprobe
 ccccccccccccc
 cccccccccccccc
@@ -1320,8 +1320,8 @@ ccccccccccccc        if ( allocated( probe_mask ) ) deallocate (probe_mask)
 ccccccccccccc        allocate (probes(nprobes))
 ccccccccccccc        allocate (probe_mask(npole))
 ccccccccccccc
-ccccccccccccc      return
-ccccccccccccc      end subroutine recv_nprobes
+      return
+      end subroutine recv_nprobes
 
 c
 c     #################################################################
@@ -1419,13 +1419,13 @@ c     ##  subroutine recv_probes --  Respond to ">PROBES"            ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine recv_probes(comm)
+      subroutine recv_probes(comm)
 ccccccccccccc        use iounit , only : iout
 ccccccccccccc1       use mdi , only    : MDI_DOUBLE, MDI_INT, MDI_Recv
 ccccccccccccc        use efield , only : nprobes, probes, probe_mask
 ccccccccccccc        use mpole , only : npole
 ccccccccccccc        implicit none
-ccccccccccccc        integer, intent(in)          :: comm
+        integer, intent(in)          :: comm
 ccccccccccccc        integer                      :: ierr, iprobe, i, count
 ccccccccccccc
 ccccccccccccc        if ( nprobes .eq. 0 ) then
@@ -1464,8 +1464,8 @@ ccccccccccccc      end do
 ccccccccccccc
 cccccccccccccc      write (*,*) probe_mask
 ccccccccccccc
-ccccccccccccc      return
-ccccccccccccc      end subroutine recv_probes
+      return
+      end subroutine recv_probes
 
 
 c
@@ -1796,13 +1796,13 @@ c     ##  subroutine send_residues  --  Respond to "<RESIDUES"       ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine send_residues(comm)
+      subroutine send_residues(comm)
 ccccccccccccc      use iounit , only : iout
 ccccccccccccc 1    use mdi , only    : MDI_INT, MDI_Send, MDI_Conversion_Factor
 ccccccccccccc      use pdb , only  : resnum
 ccccccccccccc      use atoms , only : n
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr, iatom
 ccccccccccccc      integer, allocatable         :: res_buf(:)
 ccccccccccccc
@@ -1830,8 +1830,8 @@ ccccccccccccc         write(iout,*)'SEND_RESIDUES -- MDI_Send failed'
 ccccccccccccc         call fatal
 ccccccccccccc      end if
 ccccccccccccc      deallocate( res_buf )
-ccccccccccccc      return
-ccccccccccccc      end subroutine send_residues
+      return
+      end subroutine send_residues
 
 c
 c     #################################################################
@@ -1916,7 +1916,7 @@ c     ##  subroutine send_field  --  Respond to "<FIELD"             ##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine send_field(comm)
+      subroutine send_field(comm)
 ccccccccccccc      use atoms , only   : n
 ccccccccccccc      use charge , only  : nion, iion, pchg
 ccccccccccccc      use efield , only  : fielde
@@ -1926,7 +1926,7 @@ ccccccccccccc      use mpole , only   : npole
 ccccccccccccc      use uprior , only  : use_pred
 ccccccccccccc
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr, ipole, dim
 ccccccccccccc      real*8, allocatable          :: field(:)
 ccccccccccccc      real*8                       :: epot
@@ -1979,8 +1979,8 @@ ccccccccccccc         write(iout,*)'SEND_FIELD -- MDI_Send failed'
 ccccccccccccc         call fatal
 ccccccccccccc      end if
 ccccccccccccc      deallocate( field )
-ccccccccccccc      return
-ccccccccccccc      end subroutine send_field
+      return
+      end subroutine send_field
 c
 c     #################################################################
 c     ##                                                             ##
@@ -1988,7 +1988,7 @@ c     ##  subroutine send_dfield_components  --  Respond to "<DFIELD"##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine send_dfield_components(comm)
+      subroutine send_dfield_components(comm)
 ccccccccccccc      use atoms , only   : n
 ccccccccccccc      use efield , only  : nprobes, dfield_pair, fielde
 ccccccccccccc      use iounit , only  : iout
@@ -1997,7 +1997,7 @@ ccccccccccccc      use mpole , only   : npole
 ccccccccccccc      use uprior , only  : use_pred
 ccccccccccccc
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr, i, j, dim
 ccccccccccccc      real*8, allocatable          :: field(:)
 ccccccccccccc      real*8                       :: epot
@@ -2052,8 +2052,8 @@ ccccccccccccc         write(iout,*)'SEND_CHARGES -- MDI_Send failed'
 ccccccccccccc         call fatal
 ccccccccccccc      end if
 ccccccccccccc      deallocate( field )
-ccccccccccccc      return
-ccccccccccccc      end subroutine send_dfield_components
+      return
+      end subroutine send_dfield_components
 c
 c     #################################################################
 c     ##                                                             ##
@@ -2061,7 +2061,7 @@ c     ##  subroutine send_ufield_components  --  Respond to "<UFIELD"##
 c     ##                                                             ##
 c     #################################################################
 c
-ccccccccccccc      subroutine send_ufield_components(comm)
+      subroutine send_ufield_components(comm)
 ccccccccccccc      use atoms , only   : n
 ccccccccccccc      use efield , only  : nprobes, ufield_pair, fielde
 ccccccccccccc      use iounit , only  : iout
@@ -2070,7 +2070,7 @@ ccccccccccccc      use mpole , only   : npole
 ccccccccccccc      use uprior , only  : use_pred
 ccccccccccccc
 ccccccccccccc      implicit none
-ccccccccccccc      integer, intent(in)          :: comm
+      integer, intent(in)          :: comm
 ccccccccccccc      integer                      :: ierr, i, j, dim
 ccccccccccccc      real*8, allocatable          :: field(:)
 ccccccccccccc      real*8                       :: epot
@@ -2125,7 +2125,7 @@ ccccccccccccc         write(iout,*)'SEND_CHARGES -- MDI_Send failed'
 ccccccccccccc         call fatal
 ccccccccccccc      end if
 ccccccccccccc      deallocate( field )
-ccccccccccccc      return
-ccccccccccccc      end subroutine send_ufield_components
+      return
+      end subroutine send_ufield_components
 
       end module mdiengine

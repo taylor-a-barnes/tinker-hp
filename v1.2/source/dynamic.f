@@ -36,7 +36,7 @@ c
       use mdstuf
       use moldyn
       use mpi
-      use mdi
+      use mdiengine, only: init_mdi,mdi_listen,use_mdi
       use mutant
       use qtb, only: qtb_thermostat,adaptive_qtb
       use potent
@@ -62,7 +62,6 @@ c
 c
 c     set up the structure and molecular mechanics calculation
 c
-      WRITE(6,*)"MDI_INT: ",MDI_INT
       call initial
       call getxyz
       call initmpi
@@ -120,6 +119,10 @@ c
             call upcase (integrate)
          end if
       end do
+c
+c     initialize the MDI Library
+c
+      call init_mdi
 c
 c     initialize the simulation length as number of time steps
 c
@@ -353,6 +356,12 @@ c
             write(iout,*) " using standard QTB thermostat"
          endif
       endif
+c
+c     start MDI at the DEFAULT node
+c
+      if ( use_mdi ) then
+        call mdi_listen("@DEFAULT")
+      end if
 c
 c     integrate equations of motion to take a time step
 c
