@@ -106,10 +106,10 @@ c
         call MDI_Register_command("@DEFAULT", "<COORDS", ierr)
         call MDI_Register_command("@DEFAULT", ">COORDS", ierr)
         call MDI_Register_command("@DEFAULT", "<DIMENSIONS", ierr)
-cccccccccc        call MDI_Register_command("@DEFAULT", "<ELEMENTS", ierr)
+        call MDI_Register_command("@DEFAULT", "<ELEMENTS", ierr)
         call MDI_Register_command("@DEFAULT", ">EWALD", ierr)
-cccccccccc        call MDI_Register_command("@DEFAULT", "<MASSES", ierr)
-cccccccccc        call MDI_Register_command("@DEFAULT", ">MASSES", ierr)
+        call MDI_Register_command("@DEFAULT", "<MASSES", ierr)
+        call MDI_Register_command("@DEFAULT", ">MASSES", ierr)
         call MDI_Register_command("@DEFAULT", "<NATOMS", ierr)
         call MDI_Register_command("@DEFAULT", "<POLARITIES", ierr)
         call MDI_Register_command("@DEFAULT", ">POLARITIES", ierr)
@@ -792,31 +792,31 @@ c     ##                                                             ##
 c     #################################################################
 c
       subroutine send_elements(comm)
-ccccccccccccc      use atoms , only  : n
-ccccccccccccc      use atomid , only  : atomic
-ccccccccccccc      use iounit , only : iout
-ccccccccccccc 1    use mdi , only    : MDI_INT, MDI_Send
-ccccccccccccc      implicit none
+      use atoms , only  : n
+      use atmtyp , only  : atomic
+      use iounit , only : iout
+ 1    use mdi , only    : MDI_INT, MDI_Send
+      implicit none
       integer, intent(in)          :: comm
-ccccccccccccc      integer                      :: ierr, iatom
-ccccccccccccc      integer, allocatable          :: mdielem(:)
-ccccccccccccc
-ccccccccccccc      allocate( mdielem(n) )
-cccccccccccccc
-cccccccccccccc     construct the elements array
-cccccccccccccc
-ccccccccccccc      do iatom=1, n
-ccccccccccccc         mdielem(iatom) = atomic(iatom)
-ccccccccccccc      end do
-cccccccccccccc
-cccccccccccccc     send the elements
-cccccccccccccc
-ccccccccccccc      call MDI_Send(mdielem, n, MDI_INT, comm, ierr)
-ccccccccccccc      if ( ierr .ne. 0 ) then
-ccccccccccccc         write(iout,*)'SEND_ELEMENTS -- MDI_Send failed'
-ccccccccccccc         call fatal
-ccccccccccccc      end if
-ccccccccccccc      deallocate( mdielem )
+      integer                      :: ierr, iatom
+      integer, allocatable          :: mdielem(:)
+
+      allocate( mdielem(n) )
+c
+c     construct the elements array
+c
+      do iatom=1, n
+         mdielem(iatom) = atomic(iatom)
+      end do
+c
+c     send the elements
+c
+      call MDI_Send(mdielem, n, MDI_INT, comm, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'SEND_ELEMENTS -- MDI_Send failed'
+         call fatal
+      end if
+      deallocate( mdielem )
       return
       end subroutine send_elements
 c
@@ -1177,31 +1177,31 @@ c     ##                                                             ##
 c     #################################################################
 c
       subroutine send_masses(comm)
-ccccccccccccc      use atoms , only  : n
-ccccccccccccc      use atomid , only  : mass
-ccccccccccccc      use iounit , only : iout
-ccccccccccccc 1    use mdi , only    : MDI_DOUBLE, MDI_Send
-ccccccccccccc      implicit none
+      use atoms , only  : n
+      use atmtyp , only  : mass
+      use iounit , only : iout
+ 1    use mdi , only    : MDI_DOUBLE, MDI_Send
+      implicit none
       integer, intent(in)          :: comm
-ccccccccccccc      integer                      :: ierr, iatom
-ccccccccccccc      real*8, allocatable          :: mdimass(:)
-ccccccccccccc
-ccccccccccccc      allocate( mdimass(n) )
-cccccccccccccc
-cccccccccccccc     construct the mass array
-cccccccccccccc
-ccccccccccccc      do iatom=1, n
-ccccccccccccc         mdimass(iatom) = mass(iatom)
-ccccccccccccc      end do
-cccccccccccccc
-cccccccccccccc     send the mass
-cccccccccccccc
-ccccccccccccc      call MDI_Send(mdimass, n, MDI_DOUBLE, comm, ierr)
-ccccccccccccc      if ( ierr .ne. 0 ) then
-ccccccccccccc         write(iout,*)'SEND_MASSES -- MDI_Send failed'
-ccccccccccccc         call fatal
-ccccccccccccc      end if
-ccccccccccccc      deallocate( mdimass )
+      integer                      :: ierr, iatom
+      real*8, allocatable          :: mdimass(:)
+
+      allocate( mdimass(n) )
+c
+c     construct the mass array
+c
+      do iatom=1, n
+         mdimass(iatom) = mass(iatom)
+      end do
+c
+c     send the mass
+c
+      call MDI_Send(mdimass, n, MDI_DOUBLE, comm, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'SEND_MASSES -- MDI_Send failed'
+         call fatal
+      end if
+      deallocate( mdimass )
       return
       end subroutine send_masses
 c
@@ -1212,31 +1212,31 @@ c     ##                                                             ##
 c     #################################################################
 c
       subroutine recv_masses(comm)
-ccccccccccccc      use atoms , only  : n
-ccccccccccccc      use atomid , only  : mass
-ccccccccccccc      use iounit , only : iout
-ccccccccccccc 1    use mdi , only    : MDI_DOUBLE, MDI_Recv
-ccccccccccccc      implicit none
+      use atoms , only  : n
+      use atmtyp , only  : mass
+      use iounit , only : iout
+ 1    use mdi , only    : MDI_DOUBLE, MDI_Recv
+      implicit none
       integer, intent(in)          :: comm
-ccccccccccccc      integer                      :: ierr, iatom
-ccccccccccccc      real*8, allocatable          :: mdimass(:)
-ccccccccccccc
-ccccccccccccc      allocate( mdimass(n) )
-cccccccccccccc
-cccccccccccccc     receive the mass
-cccccccccccccc
-ccccccccccccc      call MDI_Recv(mdimass, n, MDI_DOUBLE, comm, ierr)
-ccccccccccccc      if ( ierr .ne. 0 ) then
-ccccccccccccc         write(iout,*)'RECV_MASSES -- MDI_Recv failed'
-ccccccccccccc         call fatal
-ccccccccccccc      end if
-cccccccccccccc
-cccccccccccccc     construct the mass array
-cccccccccccccc
-ccccccccccccc      do iatom=1, n
-ccccccccccccc         mass(iatom) = mdimass(iatom)
-ccccccccccccc      end do
-ccccccccccccc      deallocate( mdimass )
+      integer                      :: ierr, iatom
+      real*8, allocatable          :: mdimass(:)
+
+      allocate( mdimass(n) )
+c
+c     receive the mass
+c
+      call MDI_Recv(mdimass, n, MDI_DOUBLE, comm, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'RECV_MASSES -- MDI_Recv failed'
+         call fatal
+      end if
+c
+c     construct the mass array
+c
+      do iatom=1, n
+         mass(iatom) = mdimass(iatom)
+      end do
+      deallocate( mdimass )
       return
       end subroutine recv_masses
 c

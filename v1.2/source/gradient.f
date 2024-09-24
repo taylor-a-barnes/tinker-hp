@@ -22,6 +22,7 @@ c
       use inter
       use inform
       use iounit
+      use mdiengine
       use mutant
       use potent
       use timestat
@@ -274,5 +275,12 @@ c pl_force is in kcal/mol/A; no conversion should be needed
 #endif
       time1 = mpi_wtime()
       timecleargrad = timecleargrad + time1-time0
+c
+c     have MDI listen at the @FORCES node
+c
+      if (use_mdi) then
+         call mdi_set_forces(derivs)
+         call mdi_listen("@FORCES")
+      end if
       return
       end

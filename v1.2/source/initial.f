@@ -27,6 +27,7 @@ c
       use iounit
       use keys
       use linmin
+      use mdiengine
       use minima
       use neigh
       use output
@@ -168,6 +169,10 @@ c
       timegrid2 = 0d0
       timerecreccomm = 0d0
       dotstgrad = .false.
+c
+c     initialize the MDI Library
+c
+      call init_mdi
       return
       end
 c

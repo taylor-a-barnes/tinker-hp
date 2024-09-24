@@ -29,6 +29,7 @@ c
       use files
       use inform
       use iounit
+      use mdiengine
       use mpi
       use potent
       implicit none
@@ -51,6 +52,10 @@ c
 c     initializing use_grad
 c
       use_grad = .false.
+c
+c     inform MDI which program is being executed
+c
+      mdi_initial_caller = 'analyze'
 c
 c     set up the structure and mechanics calculation
 c
@@ -159,6 +164,17 @@ c     energy partitioning by potential energy components
 c
          if (doenergy) then
             if (rank.eq.0) call partyze
+         end if
+c
+c     have MDI listen at the @DEFAULT node
+c
+         if (use_mdi) then
+            call mdi_listen("@DEFAULT")
+            if (mdi_cycle_analyze) then
+               abort = .false.
+               frame = frame - 1
+               cycle
+            end if
          end if
 c
 c     attempt to read next structure from the coordinate file

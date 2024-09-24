@@ -36,7 +36,7 @@ c
       use mdstuf
       use moldyn
       use mpi
-      use mdiengine, only: init_mdi,mdi_listen,use_mdi
+      use mdiengine
       use mutant
       use qtb, only: qtb_thermostat,adaptive_qtb
       use potent
@@ -119,10 +119,6 @@ c
             call upcase (integrate)
          end if
       end do
-c
-c     initialize the MDI Library
-c
-      call init_mdi
 c
 c     initialize the simulation length as number of time steps
 c
@@ -357,15 +353,18 @@ c
          endif
       endif
 c
-c     start MDI at the DEFAULT node
+c     have MDI listen at the @DEFAULT and @INIT_MD nodes
 c
-      if ( use_mdi ) then
-        call mdi_listen("@DEFAULT")
+      istep = 1
+      if (use_mdi) then
+         call mdi_listen("@DEFAULT")
+         call mdi_listen("@INIT_MD")
+         if ( mdi_exit ) istep = nstep + 1
       end if
 c
 c     integrate equations of motion to take a time step
 c
-      do istep = 1, nstep
+      do while ( istep .le. nstep )
          time0 = mpi_wtime()
          if (integrate .eq. 'VERLET') then
             call verlet (istep,dt)
@@ -385,6 +384,13 @@ c
          time1 = mpi_wtime()
          timestep = timestep + time1-time0
          call mdstattime(istep,dt)
+c
+c     allow MDI to update the number of steps
+c
+         if ( use_mdi ) then
+            call mdi_set_steps(istep, nstep)
+         end if
+         istep = istep + 1
       end do
 c
 c     perform any final tasks before program exit
