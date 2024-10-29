@@ -175,6 +175,7 @@ c
       use iounit
       use potent
       use mpi
+      use mdiengine
       implicit none
       integer i,tag,ierr,iproc
       integer iloc,iglob
@@ -243,6 +244,10 @@ c
           z(iglob) = buffer(3,iloc)
         end do
       end do
+c
+      if (use_mdi) then
+         call mdi_listen("@COORDS")
+      end if
 c
       deallocate (reqsend)
       deallocate (reqrec)

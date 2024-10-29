@@ -26,6 +26,15 @@ c     flag whether MDI has changed the value of use_ewald
       character(len=MDI_NAME_LENGTH) :: mdi_initial_caller = " "
       real*8, pointer, dimension (:,:)   :: forces_ptr
 c
+c     variables for communicating dipole information
+c
+      integer mdi_nprobes;
+      integer, allocatable :: mdi_probes(:)
+      integer, allocatable :: mdi_probe_mask(:)
+      real*8, allocatable :: mdi_fielde(:,:)
+      real*8, allocatable :: mdi_dfield_pair(:,:,:)
+      real*8, allocatable :: mdi_ufield_pair(:,:,:)
+c
 c     Only used by analyze.x
 c     If it is necessary to exit the node before responding to a command,
 c       this variable will contain the current command
@@ -139,7 +148,7 @@ c
            call MDI_Register_command("@DEFAULT", "<PE", ierr)
            call MDI_Register_command("@DEFAULT", "<FORCES", ierr)
         end if
-
+c
         call MDI_Register_node("@INIT_MD", ierr)
         call MDI_Register_command("@INIT_MD", "EXIT", ierr)
         call MDI_Register_command("@INIT_MD", "<CELL", ierr)
@@ -172,7 +181,8 @@ c
         call MDI_Register_command("@INIT_MD", "<@", ierr)
         call MDI_Register_command("@INIT_MD", "@", ierr)
         call MDI_Register_command("@INIT_MD", "@FORCES", ierr)
-
+        call MDI_Register_command("@INIT_MD", "@COORDS", ierr)
+c
         call MDI_Register_node("@FORCES", ierr)
         call MDI_Register_command("@FORCES", "EXIT", ierr)
         call MDI_Register_command("@FORCES", "<CELL", ierr)
@@ -208,9 +218,52 @@ c
         call MDI_Register_command("@FORCES", ">MULTIPOLES", ierr)
         call MDI_Register_command("@FORCES", ">NPROBES", ierr)
         call MDI_Register_command("@FORCES", ">PROBES", ierr)
+        call MDI_Register_command("@FORCES", "<VELOCITIES", ierr)
+        call MDI_Register_command("@FORCES", ">VELOCITIES", ierr)
         call MDI_Register_command("@FORCES", "<@", ierr)
         call MDI_Register_command("@FORCES", "@", ierr)
         call MDI_Register_command("@FORCES", "@FORCES", ierr)
+        call MDI_Register_command("@FORCES", "@COORDS", ierr)
+c
+        call MDI_Register_node("@COORDS", ierr)
+        call MDI_Register_command("@COORDS", "EXIT", ierr)
+        call MDI_Register_command("@COORDS", "<CELL", ierr)
+        call MDI_Register_command("@COORDS", "<CELL_DISPL", ierr)
+        call MDI_Register_command("@COORDS", "<CHARGES", ierr)
+        call MDI_Register_command("@COORDS", "<COORDS", ierr)
+        call MDI_Register_command("@COORDS", ">COORDS", ierr)
+        call MDI_Register_command("@COORDS", "<DIMENSIONS", ierr)
+        call MDI_Register_command("@COORDS", "<ELEMENTS", ierr)
+        call MDI_Register_command("@COORDS", "<ENERGY", ierr)
+        call MDI_Register_command("@COORDS", "<FORCES", ierr)
+        call MDI_Register_command("@COORDS", "<KE", ierr)
+        call MDI_Register_command("@COORDS", "<MASSES", ierr)
+        call MDI_Register_command("@COORDS", ">MASSES", ierr)
+        call MDI_Register_command("@COORDS", "<NATOMS", ierr)
+        call MDI_Register_command("@COORDS", "<PE", ierr)
+        call MDI_Register_command("@COORDS", "<TOTCHARGE", ierr)
+        call MDI_Register_command("@COORDS", "<NPOLES", ierr)
+        call MDI_Register_command("@COORDS", "<POLARITIES", ierr)
+        call MDI_Register_command("@COORDS", ">POLARITIES", ierr)
+        call MDI_Register_command("@COORDS", ">POLARIZE", ierr)
+        call MDI_Register_command("@COORDS", "<POLEDIMS", ierr)
+        call MDI_Register_command("@COORDS", "<POLES", ierr)
+        call MDI_Register_command("@COORDS", "<IPOLES", ierr)
+        call MDI_Register_command("@COORDS", "<FIELD", ierr)
+        call MDI_Register_command("@COORDS", "<DFIELD", ierr)
+        call MDI_Register_command("@COORDS", "<UFIELD", ierr)
+        call MDI_Register_command("@COORDS", "<RESIDUES", ierr)
+        call MDI_Register_command("@COORDS", "<MOLECULES", ierr)
+        call MDI_Register_command("@COORDS", "<MULTIPOLES", ierr)
+        call MDI_Register_command("@COORDS", ">MULTIPOLES", ierr)
+        call MDI_Register_command("@COORDS", ">NPROBES", ierr)
+        call MDI_Register_command("@COORDS", ">PROBES", ierr)
+        call MDI_Register_command("@FORCES", "<VELOCITIES", ierr)
+        call MDI_Register_command("@FORCES", ">VELOCITIES", ierr)
+        call MDI_Register_command("@COORDS", "<@", ierr)
+        call MDI_Register_command("@COORDS", "@", ierr)
+        call MDI_Register_command("@COORDS", "@FORCES", ierr)
+        call MDI_Register_command("@COORDS", "@COORDS", ierr)
 c
       end if
       mdi_exit = .false.
@@ -470,6 +523,10 @@ c
          call recv_nprobes(comm)
       case( ">PROBES" )
          call recv_probes(comm)
+      case( "<VELOCITIES" )
+         call send_velocities(comm)
+      case( ">VELOCITIES" )
+         call recv_velocities(comm)
       case( "<@" )
          call MDI_Send(current_node, MDI_NAME_LENGTH, MDI_CHAR, comm,
      &                 ierr)
@@ -483,6 +540,8 @@ c
          target_node = "@INIT_MD"
       case( "@FORCES" )
          target_node = "@FORCES"
+      case( "@COORDS" )
+         target_node = "@COORDS"
       case default
         write(iout,*)'EXECUTE_COMMAND -- Command name not recognized: ',
      &                command
@@ -750,6 +809,120 @@ c
       deallocate( coords )
       return
       end subroutine recv_coords
+c
+c     #################################################################
+c     ##                                                             ##
+c     ##  subroutine send_velocities  --  Respond to "<VELOCITIES"   ##
+c     ##                                                             ##
+c     #################################################################
+c
+      subroutine send_velocities(comm)
+      use atoms , only  : n
+      use moldyn , only : v
+      use iounit , only : iout
+ 1    use mdi , only    : MDI_DOUBLE, MDI_Send, MDI_Conversion_Factor
+      implicit none
+      integer, intent(in)          :: comm
+      integer                      :: ierr, iatom
+      real*8, allocatable          :: mdi_velocities(:)
+      real*8                       :: conv_d, conv_t, conv
+
+      allocate( mdi_velocities(3*n) )
+c
+c     get the conversion factor from angstrom to a.u.
+c
+      call MDI_Conversion_Factor("angstrom", "atomic_unit_of_length",
+     &                           conv_d, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'SEND_VELOCITIES -- MDI_Conversion_Factor failed'
+         call fatal
+      end if
+c
+c     get the conversion factor from seconds to a.u.
+c
+      call MDI_Conversion_Factor("second", "atomic_unit_of_time",
+     &                           conv_t, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'SEND_VELOCITIES -- MDI_Conversion_Factor failed'
+         call fatal
+      end if
+      conv = conv_d / conv_t
+c
+c     construct the coordinates array
+c
+      do iatom=1, n
+        mdi_velocities( 3*(iatom-1) + 1 ) = v(1, iatom) * conv
+        mdi_velocities( 3*(iatom-1) + 2 ) = v(2, iatom) * conv
+        mdi_velocities( 3*(iatom-1) + 3 ) = v(3, iatom) * conv
+      end do
+c
+c     send the coordinates
+c
+      call MDI_Send(mdi_velocities, 3*n, MDI_DOUBLE, comm, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'SEND_COORDS -- MDI_Send failed'
+         call fatal
+      end if
+      deallocate( mdi_velocities )
+      return
+      end subroutine send_velocities
+c
+c     #################################################################
+c     ##                                                             ##
+c     ##  subroutine recv_velocities  --  Respond to ">VELOCITIES"   ##
+c     ##                                                             ##
+c     #################################################################
+c
+      subroutine recv_velocities(comm)
+      use atoms , only  : n
+      use moldyn , only : v
+      use iounit , only : iout
+ 1    use mdi , only    : MDI_DOUBLE, MDI_Recv, MDI_Conversion_Factor
+      implicit none
+      integer, intent(in)          :: comm
+      integer                      :: ierr, iatom
+      real*8, allocatable          :: mdi_velocities(:)
+      real*8                       :: conv_d, conv_t, conv
+
+      allocate( mdi_velocities(3*n) )
+c
+c     get the conversion factor from angstrom to a.u.
+c
+      call MDI_Conversion_Factor("angstrom", "atomic_unit_of_length",
+     &                           conv_d, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'RECV_VELOCITIES -- MDI_Conversion_Factor failed'
+         call fatal
+      end if
+c
+c     get the conversion factor from seconds to a.u.
+c
+      call MDI_Conversion_Factor("second", "atomic_unit_of_time",
+     &                           conv_t, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'RECV_VELOCITIES -- MDI_Conversion_Factor failed'
+         call fatal
+      end if
+      conv = conv_t / conv_d
+c
+c     receive the coordinates
+c
+      call MDI_Recv(mdi_velocities, 3*n, MDI_DOUBLE, comm, ierr)
+      if ( ierr .ne. 0 ) then
+         write(iout,*)'RECV_VELOCITIES -- MDI_Recv failed'
+         call fatal
+      end if
+c
+c     replace the system velocities with the received velocities
+c
+      do iatom=1, n
+        v(1, iatom) = mdi_velocities( 3*(iatom-1) + 1 ) * conv
+        v(2, iatom) = mdi_velocities( 3*(iatom-1) + 2 ) * conv
+        v(3, iatom) = mdi_velocities( 3*(iatom-1) + 3 ) * conv
+      end do
+      deallocate( mdi_velocities )
+      return
+      end subroutine recv_velocities
 c
 c     #################################################################
 c     ##                                                             ##
