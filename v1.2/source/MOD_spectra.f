@@ -511,11 +511,11 @@ c
       if (ranktot.eq.0) then
         call MPI_REDUCE(MPI_IN_PLACE,mudot,3*nseg,MPI_REAL8
      &      ,MPI_SUM,0,
-     $       MPI_COMM_WORLD,ierr)
+     $       COMM_WORLD,ierr)
       else
         call MPI_REDUCE(mudot,mudot,3*nseg,MPI_REAL8
      &      ,MPI_SUM,0,
-     $       MPI_COMM_WORLD,ierr)
+     $       COMM_WORLD,ierr)
       endif
 
       if(ranktot/=0) then

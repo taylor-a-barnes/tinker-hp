@@ -54,9 +54,11 @@ c
       use iounit
 ccccccccccccc      use efield
       use mpole
+      use domdec
  1    use iso_c_binding
  2    use mdi , only : MDI_Init, MDI_Accept_Communicator,
-     &    MDI_Register_node, MDI_Register_command
+     &    MDI_Register_node, MDI_Register_command,
+     &    MDI_MPI_get_world_comm
       implicit none
       logical found_mdi
       integer i
@@ -90,6 +92,10 @@ c
            write(iout,*)'INIT_MDI -- Could not initalize MDI'
            call fatal
         end if
+c
+c     get the MPI communicator that spans this code
+c
+         CALL MDI_MPI_get_world_comm(COMM_WORLD, ierr)
 c
 c     set the execute_command callback function
 c

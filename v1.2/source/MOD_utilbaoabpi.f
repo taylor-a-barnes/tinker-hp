@@ -946,39 +946,39 @@ c
 
       if (ranktot.eq.0) then
         call MPI_REDUCE(MPI_IN_PLACE,cv_pos,3*ncvatoms,MPI_REAL8
-     $                 ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                 ,MPI_SUM,0,COMM_WORLD,ierr)
         call MPI_REDUCE(MPI_IN_PLACE,decv_tot,3*ncvatoms,MPI_REAL8
-     $                 ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                 ,MPI_SUM,0,COMM_WORLD,ierr)
       else
         call MPI_REDUCE(cv_pos,cv_pos,3*ncvatoms,MPI_REAL8
-     $                 ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                 ,MPI_SUM,0,COMM_WORLD,ierr)
         call MPI_REDUCE(decv_tot,decv_tot,3*ncvatoms,MPI_REAL8
-     $                 ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                 ,MPI_SUM,0,COMM_WORLD,ierr)
       end if
       if (use_lambdadyn) then
         if (ranktot.eq.0) then
           call MPI_REDUCE(MPI_IN_PLACE,delambdav,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
           call MPI_REDUCE(MPI_IN_PLACE,delambdae,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
         else
           call MPI_REDUCE(delambdav,delambdav,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
           call MPI_REDUCE(delambdae,delambdae,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
         end if
       end if
       if (use_osrw) then
         if (ranktot.eq.0) then
           call MPI_REDUCE(MPI_IN_PLACE,d2edlambdav2,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
           call MPI_REDUCE(MPI_IN_PLACE,d2edlambdae2,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
         else
           call MPI_REDUCE(d2edlambdav2,d2edlambdav2,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
           call MPI_REDUCE(d2edlambdae2,d2edlambdae2,1,MPI_REAL8
-     $                   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     $                   ,MPI_SUM,0,COMM_WORLD,ierr)
         end if
       end if
       end subroutine
@@ -1008,14 +1008,14 @@ c
       nbeadslocmax=polymer%nbeadsloc(nproc_polymer)
       nlocproc=int(nloc/nproc_polymer)
 c
-			call MPI_BCAST(decv,3*ncvatoms,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+			call MPI_BCAST(decv,3*ncvatoms,MPI_REAL8,0,COMM_WORLD,ierr)
 
 			if (use_lambdadyn) then
-				call MPI_BCAST(lambda,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+				call MPI_BCAST(lambda,1,MPI_REAL8,0,COMM_WORLD,ierr)
 				call def_lambdadyn(ranktot)
 				if (use_osrw) then
 					call MPI_BCAST(flambdabias,1,MPI_REAL8,0
-     $          ,MPI_COMM_WORLD,ierr)
+     $          ,COMM_WORLD,ierr)
           do i = 1, nloc
             dxdelambda(:,i)= ( dxdelambdae(:,i)+dxdelambdav(:,i) )
      $                        *dlambdavlambda
@@ -1113,10 +1113,10 @@ c     BAROSTAT SUBROUTINES
       CASE('A')
          if (anisotrop) then
           if(ranktot==0) scale(:) = exp(dt*vextbox(:))
-          call MPI_BCAST(scale,3,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(scale,3,MPI_REAL8,0,COMM_WORLD,ierr)
         else
           if(ranktot==0) tmp=exp(dt*vextvol)
-          call MPI_BCAST(tmp,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(tmp,1,MPI_REAL8,0,COMM_WORLD,ierr)
           scale(:)=tmp
         endif
         extvol = extvol*scale(1)*scale(2)*scale(3)
@@ -1158,7 +1158,7 @@ c
 c     find the isotropic scale factor for constant pressure
 c
       if(nproctot>1) then
-        call MPI_BCAST(presvir,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(presvir,1,MPI_REAL8,0,COMM_WORLD,ierr)
       endif
       scale = (1.0d0 + (dt*compress/taupres)
      &                    *(presvir-atmsph))**third

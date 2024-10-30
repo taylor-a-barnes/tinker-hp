@@ -9,8 +9,10 @@ c     ##  module domdec  --  system parameters for OpenMP/MPI domain decompositi
 c     ##                                                                                        ##
 c     ############################################################################################
 c
-c     nproctot  total number of MPI process (within MPI_COMM_WORLD)
-c     ranktot  total rank of the MPI process within MPI_COMM_WORLD 
+c     COMM_WORLD communicator to use instead of MPI_COMM_WORLD in the event that this the code
+c      is running with the MolSSI Driver Interface (MDI)
+c     nproctot  total number of MPI process (within COMM_WORLD)
+c     ranktot  total rank of the MPI process within COMM_WORLD 
 c     nxdd = number of subdivisions along the x axis
 c     nydd = number of subdivisions along the y axis
 c     nzdd = number of subdivisions along the z axis
@@ -108,6 +110,7 @@ c     nxdd,nydd,nzdd : number of divisions along the axes, for domain decomposit
 c
       module domdec
       implicit none
+      integer COMM_WORLD
       integer nxdd,nydd,nzdd
       integer nproctot,ranktot
       integer, target :: COMM_TINKER,nproc,rank

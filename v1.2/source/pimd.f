@@ -17,12 +17,14 @@ c
 c
       program pimd
       use mpi
+      use domdec, only : COMM_WORLD
       implicit none
       integer ierr,nthreadsupport
 c      call MPI_INIT(ierr)
       call MPI_INIT_THREAD(MPI_THREAD_MULTIPLE,nthreadsupport,ierr)
+      COMM_WORLD = MPI_COMM_WORLD
       call pimd_bis
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      call MPI_BARRIER(COMM_WORLD,ierr)
       call MPI_FINALIZE(ierr)
       end
 c
@@ -92,7 +94,7 @@ c
       call read_bead_config
       call getxyz
       call initmpi
-      call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+      call MPI_BARRIER(COMM_WORLD,ierr)
 
       if(nproctot==1) pi_comm_report=.FALSE.
       if(pi_comm_report) then
@@ -324,13 +326,13 @@ c
       if (ranktot.eq.0) then
          call allocate_colvars
       end if
-      call MPI_BCAST(use_colvars,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+      call MPI_BCAST(use_colvars,1,MPI_LOGICAL,0,COMM_WORLD,ierr)
       if (use_colvars) then
-        call MPI_BCAST(ncvatoms,1,MPI_INT,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(ncvatoms,1,MPI_INT,0,COMM_WORLD,ierr)
         if (ranktot.gt.0) then
           allocate (cvatoms_ids(ncvatoms))
         end if
-        call MPI_BCAST(cvatoms_ids,ncvatoms,MPI_INT,0,MPI_COMM_WORLD,
+        call MPI_BCAST(cvatoms_ids,ncvatoms,MPI_INT,0,COMM_WORLD,
      $       ierr)
         if (ranktot.gt.0) then
            allocate (cv_pos(3,ncvatoms))
@@ -345,7 +347,7 @@ c
         if (use_lambdadyn) then
           call prepare_colvars_pi(polymer)
           if (ranktot.eq.0) call compute_colvars_tinker()
-          call MPI_BCAST(lambda,1,MPI_REAL8,0,MPI_COMM_WORLD,ierr)
+          call MPI_BCAST(lambda,1,MPI_REAL8,0,COMM_WORLD,ierr)
           call def_lambdadyn(ranktot)
         end if
       end if
@@ -449,10 +451,10 @@ c
            timestep = time1-time0
            if (ranktot.eq.0) then
              call MPI_REDUCE(MPI_IN_PLACE,timestep,1,MPI_REAL8,MPI_SUM,
-     $          0,MPI_COMM_WORLD,ierr)
+     $          0,COMM_WORLD,ierr)
            else
              call MPI_REDUCE(timestep,timestep,1,MPI_REAL8,MPI_SUM,0,
-     $          MPI_COMM_WORLD,ierr)
+     $          COMM_WORLD,ierr)
            end if
            if (ranktot.eq.0) then
             write(6,1000) (timestep)/nproctot

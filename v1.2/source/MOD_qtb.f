@@ -965,9 +965,9 @@ c     the master gets the sums of Cvv and Cvf contributions
 c
       if(nproctot>1) then 
         call reduce_qtb_spectrum(mCvv_type,nbeads*ntype*3*nseg*3
-     &                              ,MPI_COMM_WORLD,ranktot,.FALSE.)
+     &                              ,COMM_WORLD,ranktot,.FALSE.)
         call reduce_qtb_spectrum(Cvf_type,nbeads*ntype*3*nseg
-     &                             ,MPI_COMM_WORLD,ranktot,.FALSE.)
+     &                             ,COMM_WORLD,ranktot,.FALSE.)
       endif
 
       if (ranktot.eq.0) then 
@@ -1103,7 +1103,7 @@ c       WRITE SPECTRA AND GAMMAR
       if(adaptive_qtb) then
 c     the master sends the adapted gamma_r to everybody
         call MPI_BCAST(gamma_type,ntype*nad*nbeads,MPI_REAL8
-     &        ,0,MPI_COMM_WORLD,ierr)
+     &        ,0,COMM_WORLD,ierr)
 c     recompute the noise kernel with the new gamma
         call adHnoise(.FALSE.)
       endif

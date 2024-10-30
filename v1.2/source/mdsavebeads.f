@@ -87,7 +87,7 @@ c
           r=random()
           ibead_save=floor(r*nbeads)+1
         endif
-        call MPI_BCAST(ibead_save,1,MPI_INT,0,MPI_COMM_WORLD,ierr)
+        call MPI_BCAST(ibead_save,1,MPI_INT,0,COMM_WORLD,ierr)
         write(*,*) "saving bead ",ibead_save
       CASE('ONE')
         save_all=.false.
@@ -314,7 +314,7 @@ c
          end if
       end if
       if (exist) then
-        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+        call MPI_BARRIER(COMM_WORLD,ierr)
         if(ranktot==0) then 
          write (iout,200)
   200    format (/,' MDSAVE  --  Dynamics Calculation Ending',
@@ -399,9 +399,9 @@ c          write(0,*) ranktot,iproc-1,nbeads_write
 c     &       ,(ibead_end_s-ibead_beg_s+1)
           
           call MPI_ISEND(nlocpi,1, MPI_INT
-     &      ,iproc-1,1,MPI_COMM_WORLD,reqsize(cs),ierr)
+     &      ,iproc-1,1,COMM_WORLD,reqsize(cs),ierr)
           call MPI_ISEND(buffers(1,1,iproc),nsend, MPI_REAL8
-     &      ,iproc-1,0,MPI_COMM_WORLD,reqs(cs),ierr)
+     &      ,iproc-1,0,COMM_WORLD,reqs(cs),ierr)
         enddo
 
         !RECEIVE SIZES
@@ -415,7 +415,7 @@ c     &       ,(ibead_end_s-ibead_beg_s+1)
             if(iproc-1==ranktot) CYCLE
             cr=cr+1          
             call MPI_IRECV(nlocr(iproc),1, MPI_INT
-     &        ,iproc-1,1,MPI_COMM_WORLD,reqr(cr),ierr)
+     &        ,iproc-1,1,COMM_WORLD,reqr(cr),ierr)
           enddo
         endif
 
@@ -440,7 +440,7 @@ c     &       ,(ibead_end_s-ibead_beg_s+1)
             cr=cr+1          
             nsend=13*nlocr(iproc)*(ibead_end_r-ibead_beg_r+2)
             call MPI_IRECV(buffer(1,1,iproc),nsend, MPI_REAL8
-     &        ,iproc-1,0,MPI_COMM_WORLD,reqr(cr),ierr)
+     &        ,iproc-1,0,COMM_WORLD,reqr(cr),ierr)
           enddo
         endif
   
@@ -511,27 +511,27 @@ c          count=0
 c          do iproc=nproc_write+1,nproctot
 c            count=count+1
 c            call MPI_ISEND(polymer%eigpos(1,1,1),3*n,MPI_REAL8
-c     &         ,iproc-1,0,MPI_COMM_WORLD,reqs(count),ierr)
+c     &         ,iproc-1,0,COMM_WORLD,reqs(count),ierr)
 c            count=count+1
 c            call MPI_ISEND(pbcwrapindex,3*n,MPI_INT
-c     &         ,iproc-1,1,MPI_COMM_WORLD,reqs(count),ierr)
+c     &         ,iproc-1,1,COMM_WORLD,reqs(count),ierr)
 c          enddo
 c          call MPI_WAITALL(count,reqs,MPI_STATUSES_IGNORE,ierr)
 c
 c        elseif(ranktot>nproc_write) then
 c          call MPI_IRECV(polymer%eigpos(1,1,1),3*n,MPI_REAL8
-c     &          ,0,0,MPI_COMM_WORLD,reqr(1),ierr)
+c     &          ,0,0,COMM_WORLD,reqr(1),ierr)
 c          call MPI_IRECV(pbcwrapindex,3*n,MPI_INT
-c     &          ,0,1,MPI_COMM_WORLD,reqr(2),ierr)
+c     &          ,0,1,COMM_WORLD,reqr(2),ierr)
 c          call MPI_WAITALL(2,reqr,MPI_STATUS_IGNORE,ierr)
 c
 c        endif
 
 
         call MPI_IBCAST(polymer%eigpos(1,1,1),3*n,MPI_REAL8,0
-     &     ,MPI_COMM_WORLD,reqr(1),ierr)
+     &     ,COMM_WORLD,reqr(1),ierr)
         call MPI_IBCAST(pbcwrapindex,3*n,MPI_INT,0
-     &     ,MPI_COMM_WORLD,reqr(2),ierr)
+     &     ,COMM_WORLD,reqr(2),ierr)
 
         call MPI_WAITALL(2,reqr,MPI_STATUSES_IGNORE,ierr)
       

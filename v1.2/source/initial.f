@@ -41,6 +41,10 @@ c
       integer ierr
       real*8 precise
 c
+c     initialize the MDI Library
+c
+      call init_mdi
+c
 c     replicas
 c
       nreps = 0
@@ -65,8 +69,8 @@ c
 c
 c     Number of MPI processes and rank of the current MPI process
 c
-      call MPI_COMM_SIZE(MPI_COMM_WORLD,nproctot,ierr)
-      call MPI_COMM_RANK(MPI_COMM_WORLD,ranktot,ierr)
+      call MPI_COMM_SIZE(COMM_WORLD,nproctot,ierr)
+      call MPI_COMM_RANK(COMM_WORLD,ranktot,ierr)
 c
 c     Display copyright notice and license number
       if (ranktot.eq.0) call promo
@@ -169,10 +173,6 @@ c
       timegrid2 = 0d0
       timerecreccomm = 0d0
       dotstgrad = .false.
-c
-c     initialize the MDI Library
-c
-      call init_mdi
       return
       end
 c
@@ -190,7 +190,7 @@ c
           write(iout,*) 'Error: PIMD and classical replicas 
      &     cannot be used together'
         end if
-        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+        call MPI_BARRIER(COMM_WORLD,ierr)
         call fatal
       end if
 
@@ -201,7 +201,7 @@ c
           if (ranktot.eq.0) then
             write(iout,*) 'Error: number of replicas should be > 0'
           end if
-          call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+          call MPI_BARRIER(COMM_WORLD,ierr)
           call fatal
         endif
         if (nproctot.lt.nreps) then
@@ -209,7 +209,7 @@ c
           if (ranktot.eq.0) then
             write(iout,*) 'each process should deal with max 1 replica'
           end if
-          call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+          call MPI_BARRIER(COMM_WORLD,ierr)
           call fatal
         else if (mod(nproctot,nreps).ne.0) then
           if (ranktot.eq.0) then
@@ -240,7 +240,7 @@ c
           if (ranktot.eq.0) then
             write(iout,*) 'Error: number of beads should be > 0'
           end if
-          call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+          call MPI_BARRIER(COMM_WORLD,ierr)
           call fatal
         endif
         
@@ -285,7 +285,7 @@ c
       if ((ncomm-nproc*nproctot).gt.0) ncomm = ncomm+1
 
       ! split MPI_COMM_WORLD into spatial communicator COMM_TINKER
-      CALL MPI_Comm_split(MPI_COMM_WORLD,rank_reploc,
+      CALL MPI_Comm_split(COMM_WORLD,rank_reploc,
      $     ranktot,COMM_TINKER,ierr)
       call MPI_COMM_SIZE(COMM_TINKER,nproc,ierr)
       call MPI_COMM_RANK(COMM_TINKER,rank,ierr)
@@ -299,7 +299,7 @@ c
       !!! replica-specific communicators
       if(path_integral_md) then
         ! create polymer communicator
-        CALL MPI_Comm_split(MPI_COMM_WORLD,rank,
+        CALL MPI_Comm_split(COMM_WORLD,rank,
      $    ranktot,COMM_POLYMER,ierr)
         call MPI_COMM_SIZE(COMM_POLYMER,nproc_polymer,ierr)
         call MPI_COMM_RANK(COMM_POLYMER,rank_polymer,ierr)
@@ -308,7 +308,7 @@ c
         ! create inter root communicator
         color = 1
         if (rank.eq.0) color = 0
-        call MPI_Comm_split(MPI_COMM_WORLD,color,ranktot,COMM_ROOT2ROOT,
+        call MPI_Comm_split(COMM_WORLD,color,ranktot,COMM_ROOT2ROOT,
      $    ierr)
 
       endif

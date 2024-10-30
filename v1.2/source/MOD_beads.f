@@ -12,6 +12,7 @@ c
 c
       module beads
       use dcdmod
+      use domdec, only : COMM_WORLD
       implicit none
       logical :: path_integral_md=.FALSE.
       integer :: nbeads,nbeadsloc   
@@ -331,9 +332,9 @@ c
         deallocate(WORK)
       endif
       call MPI_BCAST(eigmat,nbeads**2,MPI_REAL8
-     &    ,0,MPI_COMM_WORLD,ierr)
+     &    ,0,COMM_WORLD,ierr)
       call MPI_BCAST(omkpi,nbeads,MPI_REAL8
-     &    ,0,MPI_COMM_WORLD,ierr)
+     &    ,0,COMM_WORLD,ierr)
 
 
       if (contract .and. nbeads_ctr>1) then
@@ -371,7 +372,7 @@ c
           deallocate(WORK_ctr,eigMat_ctr,omkpi_ctr)
         endif
         call MPI_BCAST(contractor_mat,nbeads*nbeads_ctr,MPI_REAL8
-     &    ,0,MPI_COMM_WORLD,ierr)
+     &    ,0,COMM_WORLD,ierr)
       endif
       
       call allocate_polymer(polymer,nbeads
@@ -576,7 +577,7 @@ c
       real(8), save :: time0, time1
       integer :: ierr
 
-      if(barrier) call MPI_Barrier(MPI_COMM_WORLD,ierr)
+      if(barrier) call MPI_Barrier(COMM_WORLD,ierr)
       if(reset) then
         time0 = mpi_wtime()
         timer = time0
@@ -763,11 +764,11 @@ c
       if(ranktot==0) then
         call MPI_REDUCE(MPI_IN_PLACE,buffer
      &       ,ncomm,MPI_REAL8
-     &       ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     &       ,MPI_SUM,0,COMM_WORLD,ierr)
       else
         call MPI_REDUCE(buffer,buffer
      &        ,ncomm,MPI_REAL8
-     &       ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
+     &       ,MPI_SUM,0,COMM_WORLD,ierr)
       endif
 
       if(ranktot==0) then
