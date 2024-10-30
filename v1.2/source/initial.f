@@ -41,10 +41,6 @@ c
       integer ierr
       real*8 precise
 c
-c     initialize the MDI Library
-c
-      call init_mdi
-c
 c     replicas
 c
       nreps = 0
@@ -66,6 +62,10 @@ c
 c     command line arguments to the program
 c
       call command
+c
+c     initialize the MDI Library
+c
+      call init_mdi
 c
 c     Number of MPI processes and rank of the current MPI process
 c
